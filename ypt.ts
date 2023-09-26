@@ -14,6 +14,13 @@ interface YPTUser {
   name: string;
 }
 
+export interface Stats {
+  totalStudyTime: number;
+  totalAllowedAppTime: number;
+  longestStreak: number;
+  subjectTimings: Record<string, number>;
+}
+
 /* Zod schemas */
 
 const createdGroupSchema = z.object({
@@ -33,9 +40,41 @@ const generatedLinkSchema = z.object({
   shortLink: z.string(),
 });
 
+const studyDataSchema = z.object({
+  ls: z.array(z.object({
+    // Date as YYYY-MM-DD
+    dt: z.string(),
+    // Total study time
+    sm: z.number(),
+    // Longest session
+    mm: z.number(),
+    // Username
+    n: z.string(),
+    // Study timings
+    ls: z.array(z.object({
+      // Subject
+      sb: z.string(),
+      // Time spent
+      sm: z.number(),
+      // Start time
+      st: z.union([z.string(), z.number()]),
+    })),
+    // Allowed app usage timings
+    as: z.array(z.object({
+      // Subject
+      sb: z.string(),
+      // Usage duration
+      sm: z.number(),
+      // Start time
+      st: z.string(),
+    })),
+  })),
+});
+
 type CreatedGroup = z.infer<typeof createdGroupSchema>;
 type GroupMembers = z.infer<typeof groupMembersSchema>;
 type GeneratedLink = z.infer<typeof generatedLinkSchema>;
+type StudyData = z.infer<typeof studyDataSchema>;
 
 /* Constants */
 
@@ -161,6 +200,28 @@ async function reqSetInviteInfo(groupId: number, inviteLink: string) {
   );
 }
 
+/** Request to get a user's full study log. */
+async function reqStudyData(
+  userId: number,
+  startDate: string,
+  endDate: string,
+): Promise<StudyData> {
+  const body = {
+    id: userId,
+    // Not sure what this does
+    isMember: true,
+    startDate,
+    endDate,
+  };
+
+  const res = await fetch(
+    `${YPT_BASE_URL}/logs/range/days`,
+    { method: "POST", headers: YPT_AUTH_HEADER, body: JSON.stringify(body) },
+  );
+
+  return studyDataSchema.parse(await res.json());
+}
+
 /* Higher-level functions for iterfacing with YPT */
 
 /** Creates a group on YPT with space for one user. */
@@ -198,7 +259,6 @@ export async function waitForMember(groupId: number): Promise<YPTUser> {
   while (members.ms.length < 2) {
     // Sleep for 2s
     await new Promise((r) => setTimeout(r, 2000));
-
     // Refesh the members array
     members = await reqGroupMembers(groupId);
   }
@@ -210,4 +270,48 @@ export async function waitForMember(groupId: number): Promise<YPTUser> {
   const { ud: id, n: name } = members.ms.find(({ ud }) => ud !== YPT_BOT_ID)!;
 
   return { id, name };
+}
+
+export async function getStudyStats(userId: number): Promise<Stats> {
+  const studyData = await reqStudyData(userId, "2000-1-1", "3000-1-1");
+
+  let totalStudyTime = 0;
+  let totalAllowedAppTime = 0;
+
+  let longestStreak = 0;
+  let currentStreak = 0;
+  let lastStreakEnd = 0;
+
+  const subjectTimings: Record<string, number> = {};
+
+  for (const studyDay of studyData.ls) {
+    totalStudyTime += studyDay.sm;
+
+    const date = Date.parse(studyDay.dt);
+
+    if (date - lastStreakEnd === 1000 * 60 * 60 * 24) {
+      currentStreak += 1;
+    } else {
+      longestStreak = Math.max(longestStreak, currentStreak);
+      currentStreak = 1;
+    }
+
+    lastStreakEnd = date;
+
+    for (const allowedAppSession of studyDay.as) {
+      totalAllowedAppTime += allowedAppSession.sm;
+    }
+
+    for (const studySession of studyDay.ls) {
+      if (!Object.hasOwn(subjectTimings, studySession.sb)) {
+        subjectTimings[studySession.sb] = 0;
+      }
+
+      subjectTimings[studySession.sb] += studySession.sm;
+    }
+  }
+
+  longestStreak = Math.max(longestStreak, currentStreak);
+
+  return { totalStudyTime, totalAllowedAppTime, longestStreak, subjectTimings };
 }
