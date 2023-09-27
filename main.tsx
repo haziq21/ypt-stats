@@ -18,6 +18,7 @@ import "https://deno.land/std@0.202.0/dotenv/load.ts";
 
 import {
   createOneTimeGroup,
+  deleteAllGroups,
   getStudyStats,
   Stats,
   userSchema,
@@ -122,4 +123,10 @@ app.post("/image", async (c) => {
   return c.json({ ...user, ...studyStats });
 });
 
+if (Deno.env.get("ENVIRONMENT") === "DEV") {
+  app.delete("/groups", async (c) => {
+    const count = await deleteAllGroups();
+    return c.text(`Deleted ${count} groups`);
+  });
+}
 Deno.serve({ port: 3000 }, app.fetch);

@@ -23,6 +23,12 @@ export const userSchema = z.object({
   name: z.string(),
 });
 
+const groupsSchema = z.object({
+  gs: z.array(z.object({
+    id: z.number(),
+  })),
+});
+
 const createdGroupSchema = z.object({
   g: z.object({
     id: z.number(),
@@ -72,6 +78,7 @@ const studyDataSchema = z.object({
 });
 
 type User = z.infer<typeof userSchema>;
+type Groups = z.infer<typeof groupsSchema>;
 type CreatedGroup = z.infer<typeof createdGroupSchema>;
 type GroupMembers = z.infer<typeof groupMembersSchema>;
 type GeneratedLink = z.infer<typeof generatedLinkSchema>;
@@ -89,6 +96,17 @@ const YPT_BOT_ID = Number.parseInt(
 );
 
 /* Functions to call HTTP APIs (reverse-engineered from YPT Android app) */
+
+/** Request to get all the groups owned by the bot. */
+async function reqGroups(): Promise<Groups> {
+  // Send the request
+  const res = await fetch(
+    `${YPT_BASE_URL}/group/groups`,
+    { headers: YPT_AUTH_HEADER },
+  );
+
+  return groupsSchema.parse(await res.json());
+}
 
 /** Request to create a YPT group. */
 async function reqCreateGroup(
@@ -275,6 +293,7 @@ export async function waitForMember(groupId: number): Promise<User> {
   return { id, name };
 }
 
+/** Fetches and computes a user's study statistics. */
 export async function getStudyStats(userId: number): Promise<Stats> {
   const studyData = await reqStudyData(userId, "2000-1-1", "3000-1-1");
 
@@ -317,4 +336,15 @@ export async function getStudyStats(userId: number): Promise<Stats> {
   longestStreak = Math.max(longestStreak, currentStreak);
 
   return { totalStudyTime, totalAllowedAppTime, longestStreak, subjectTimings };
+}
+
+/** Deletes all the groups created by the bot. */
+export async function deleteAllGroups(): Promise<number> {
+  const groupRes = await reqGroups();
+
+  for (const group of groupRes.gs) {
+    reqDeleteGroup(group.id);
+  }
+
+  return groupRes.gs.length;
 }
