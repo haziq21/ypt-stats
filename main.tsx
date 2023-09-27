@@ -1,5 +1,10 @@
 /** @jsx jsx */
-import { jsx } from "https://deno.land/x/hono@v3.7.0-rc.1/middleware.ts";
+/** @jsxFrag Fragment */
+import {
+  Fragment,
+  jsx,
+} from "https://deno.land/x/hono@v3.7.0-rc.1/middleware.ts";
+
 import { Hono } from "npm:hono";
 import {
   deleteCookie,
@@ -27,34 +32,36 @@ const PRIVATE_KEY = Deno.env.get("PRIVATE_KEY")!;
 
 const app = new Hono();
 
-const SummaryStats = (props: Stats) => (
-  <div>
-    <p>
-      {Math.round(props.totalStudyTime / 1000 / 60 / 60)}h total study time!!!
-    </p>
-    <p>i havent formatted these: {JSON.stringify(props)}</p>
-  </div>
-);
-
 const JoinGroup = (props: {
   name: string;
   password: string;
   link: string;
 }) => (
-  <div hx-get="/stats-loader" hx-trigger="load">
-    <p>
+  <>
+    <p hx-get="/stats-loader" hx-trigger="load">
       join this group rn <a href={props.link}>{props.name}</a>
     </p>
     (password is {props.password})
-  </div>
+  </>
 );
 
 const StatsLoader = (props: { name: string }) => (
-  <div hx-post="/stats" hx-trigger="load" hx-target="#stats">
-    <h1>hi {props.name}</h1>
+  <>
+    <h1 hx-post="/stats" hx-trigger="load" hx-target="#stats">
+      hi {props.name}
+    </h1>
     <p>im loading your stats (alr deleted the grp)</p>
     <div id="stats"></div>
-  </div>
+  </>
+);
+
+const SummaryStats = (props: Stats) => (
+  <>
+    <p>
+      {Math.round(props.totalStudyTime / 1000 / 60 / 60)}h total study time!!!
+    </p>
+    <p>i havent formatted these: {JSON.stringify(props)}</p>
+  </>
 );
 
 // Homepage
@@ -88,6 +95,7 @@ app.get("/stats-loader", async (c) => {
   const groupId = await getSignedCookie(c, PRIVATE_KEY, "otg");
   if (!groupId) return c.body(null, 400);
 
+  // Wait for the user to join the YPT group
   const user = await waitForMember(Number.parseInt(groupId));
 
   deleteCookie(c, "otg");
