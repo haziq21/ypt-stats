@@ -145,6 +145,8 @@ async function reqGroupMembers(groupId: number): Promise<GroupMembers> {
 
 /** Request to generate a shortened YPT group invite link. */
 async function reqInviteLink(groupId: number): Promise<GeneratedLink> {
+  const ogTitle = "One-time group for YPT Stats";
+  const ogDescription = "Join this group to log in on YPT Stats.";
   const ogImageUrl =
     "https://firebasestorage.googleapis.com/v0/b/yeolpumta-deeplink/o/social_images%2Fogtag_studygroup_en.png?alt=media&token=427f0278-8222-4afd-9b9e-a12d3b705764";
   const link = `https://yeolpumta.com/invite?type=study&groupId=${groupId}`;
@@ -154,11 +156,11 @@ async function reqInviteLink(groupId: number): Promise<GeneratedLink> {
     // "The link your app will open"
     `?link=${encodeURIComponent(link)}` +
     // "The title to use when the Dynamic Link is shared in a social post"
-    "&st=ypt-stats" +
+    `&st=${encodeURIComponent(ogTitle)}` +
     // "The description to use when the Dynamic Link is shared in a social post"
-    `&sd=${decodeURIComponent("Join this YPT group!")}` +
+    `&sd=${encodeURIComponent(ogDescription)}` +
     // "The URL to an image related to this link"
-    `&si=${decodeURIComponent(ogImageUrl)}` +
+    `&si=${encodeURIComponent(ogImageUrl)}` +
     // "Google Play analytics parameters"
     "&utm_campaign=grouplink" +
     "&utm_medium=invite" +
