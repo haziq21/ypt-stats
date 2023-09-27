@@ -11,22 +11,18 @@ import {
   getSignedCookie,
   setSignedCookie,
 } from "npm:hono/cookie";
-import { z } from "npm:zod";
 
 import "https://deno.land/std@0.202.0/dotenv/load.ts";
 // import { Resvg } from "npm:@resvg/resvg-js";
 // import { qrcode } from "https://deno.land/x/qrcode@v2.0.0/mod.ts";
+
 import {
   createOneTimeGroup,
   getStudyStats,
   Stats,
+  userSchema,
   waitForMember,
 } from "./ypt.ts";
-
-const userSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-});
 
 const PRIVATE_KEY = Deno.env.get("PRIVATE_KEY")!;
 

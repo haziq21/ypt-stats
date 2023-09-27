@@ -9,11 +9,6 @@ interface YPTGroup {
   link: string;
 }
 
-interface YPTUser {
-  id: number;
-  name: string;
-}
-
 export interface Stats {
   totalStudyTime: number;
   totalAllowedAppTime: number;
@@ -22,6 +17,11 @@ export interface Stats {
 }
 
 /* Zod schemas */
+
+export const userSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
 
 const createdGroupSchema = z.object({
   g: z.object({
@@ -71,6 +71,7 @@ const studyDataSchema = z.object({
   })),
 });
 
+type User = z.infer<typeof userSchema>;
 type CreatedGroup = z.infer<typeof createdGroupSchema>;
 type GroupMembers = z.infer<typeof groupMembersSchema>;
 type GeneratedLink = z.infer<typeof generatedLinkSchema>;
@@ -78,6 +79,7 @@ type StudyData = z.infer<typeof studyDataSchema>;
 
 /* Constants */
 
+const FIREBASE_WEB_API_KEY = Deno.env.get("FIREBASE_WEB_API_KEY");
 const YPT_BASE_URL = "https://pi.tgclab.com";
 const YPT_JWT = Deno.env.get("YPT_JWT")!;
 const YPT_AUTH_HEADER = { Authorization: "JWT " + YPT_JWT };
@@ -85,8 +87,6 @@ const YPT_AUTH_HEADER = { Authorization: "JWT " + YPT_JWT };
 const YPT_BOT_ID = Number.parseInt(
   JSON.parse(atob(YPT_JWT.split(".")[1])).user_id,
 );
-
-const FIREBASE_WEB_API_KEY = Deno.env.get("FIREBASE_WEB_API_KEY");
 
 /* Functions to call HTTP APIs (reverse-engineered from YPT Android app) */
 
@@ -111,7 +111,6 @@ async function reqCreateGroup(
 
   // Parse the response
   const json = await res.json();
-  console.log(json);
 
   return createdGroupSchema.parse(json);
 }
@@ -138,7 +137,7 @@ async function reqGroupMembers(groupId: number): Promise<GroupMembers> {
 
   // Parse the response
   const json = await res.json();
-  console.log(json);
+  // console.log(json);
 
   return groupMembersSchema.parse(json);
 }
@@ -208,6 +207,7 @@ async function reqStudyData(
   startDate: string,
   endDate: string,
 ): Promise<StudyData> {
+  // Construct the request body
   const body = {
     id: userId,
     // Not sure what this does
@@ -216,19 +216,20 @@ async function reqStudyData(
     endDate,
   };
 
+  // Send the request
   const res = await fetch(
     `${YPT_BASE_URL}/logs/range/days`,
     { method: "POST", headers: YPT_AUTH_HEADER, body: JSON.stringify(body) },
   );
 
+  // Parse the response
   return studyDataSchema.parse(await res.json());
 }
-
 /* Higher-level functions for iterfacing with YPT */
 
 /** Creates a group on YPT with space for one user. */
 export async function createOneTimeGroup(): Promise<YPTGroup> {
-  // TODO: generate name (adjective colour animal)
+  // TODO: generate better name
   const name = `ypt stats [${Math.floor(10 + Math.random() * 90).toString()}]`;
   const password = Math.floor(1000 + Math.random() * 9000).toString();
 
@@ -254,7 +255,7 @@ export async function createOneTimeGroup(): Promise<YPTGroup> {
  * Waits for a user to join the group, then deletes
  * the group and returns the user's details.
  */
-export async function waitForMember(groupId: number): Promise<YPTUser> {
+export async function waitForMember(groupId: number): Promise<User> {
   let members = await reqGroupMembers(groupId);
 
   // Poll the group members endpoint until a user joins the group
