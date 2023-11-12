@@ -1,19 +1,14 @@
-/** @jsx jsx */
-/** @jsxFrag Fragment */
-import {
-  Fragment,
-  jsx,
-} from "https://deno.land/x/hono@v3.7.0-rc.1/middleware.ts";
-
-import { Hono } from "npm:hono";
+import { Hono } from "https://deno.land/x/hono@v3.10.0-rc.2/mod.ts";
 import {
   deleteCookie,
   getSignedCookie,
   setSignedCookie,
-} from "npm:hono/cookie";
+} from "https://deno.land/x/hono@v3.7.0-rc.1/middleware.ts";
 
-import "https://deno.land/std@0.202.0/dotenv/load.ts";
-// import { Resvg } from "npm:@resvg/resvg-js";
+import { setup, tw } from "npm:twind";
+import { getStyleTag, virtualSheet } from "npm:twind/sheets";
+
+// import "https://deno.land/std@0.202.0/dotenv/load.ts";
 // import { qrcode } from "https://deno.land/x/qrcode@v2.0.0/mod.ts";
 
 import {
@@ -124,9 +119,11 @@ app.post("/image", async (c) => {
 });
 
 if (Deno.env.get("ENVIRONMENT") === "DEV") {
+  // DELETE all the bot-created groups
   app.delete("/groups", async (c) => {
     const count = await deleteAllGroups();
     return c.text(`Deleted ${count} groups`);
   });
 }
+
 Deno.serve({ port: 3000 }, app.fetch);
