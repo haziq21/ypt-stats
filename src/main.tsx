@@ -8,7 +8,7 @@ import {
 import { setup, tw } from "npm:twind";
 import { getStyleTag, virtualSheet } from "npm:twind/sheets";
 
-// import "https://deno.land/std@0.202.0/dotenv/load.ts";
+import "https://deno.land/std@0.206.0/dotenv/load.ts";
 // import { qrcode } from "https://deno.land/x/qrcode@v2.0.0/mod.ts";
 
 import {
