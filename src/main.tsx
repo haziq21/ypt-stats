@@ -8,8 +8,6 @@ import {
 import { setup, tw } from "npm:twind";
 import { getStyleTag, virtualSheet } from "npm:twind/sheets";
 
-import "https://deno.land/std@0.206.0/dotenv/load.ts";
-
 import Main from "./components/Main.tsx";
 import JoinGroup from "./components/JoinGroup.tsx";
 import StatsLoader from "./components/StatsLoader.tsx";
