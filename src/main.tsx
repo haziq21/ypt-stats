@@ -23,7 +23,7 @@ import {
   waitForMember,
 } from "./ypt.ts";
 
-const PRIVATE_KEY = Deno.env.get("PRIVATE_KEY")!;
+const SIGNING_KEY = Deno.env.get("SIGNING_KEY")!;
 
 // Twind setup
 const sheet = virtualSheet();
@@ -54,6 +54,7 @@ app.get("/styles.css", (c) => {
 // Homepage
 app.get("/", (c: Context) => {
   // TODO: check if the "user" cookie is set
+
   return c.html(<Main />);
 });
 
@@ -61,26 +62,26 @@ app.post("/otg", async (c: Context) => {
   // Create a one-time YPT group to identify and authenticate the user
   const group = await createOneTimeGroup();
   // So we can identify the user on the /stats endpoint
-  await setSignedCookie(c, "otg", group.id.toString(), PRIVATE_KEY);
+  await setSignedCookie(c, "otg", group.id.toString(), SIGNING_KEY);
 
   return c.html(<JoinGroup {...group} />);
 });
 
 app.get("/stats-loader", async (c: Context) => {
-  const groupId = await getSignedCookie(c, PRIVATE_KEY, "otg");
+  const groupId = await getSignedCookie(c, SIGNING_KEY, "otg");
   if (!groupId) return c.body(null, 400);
 
   // Wait for the user to join the YPT group
   const user = await waitForMember(Number.parseInt(groupId));
 
   deleteCookie(c, "otg");
-  await setSignedCookie(c, "user", JSON.stringify(user), PRIVATE_KEY);
+  await setSignedCookie(c, "user", JSON.stringify(user), SIGNING_KEY);
 
   return c.html(<StatsLoader name={user.name} />);
 });
 
 app.post("/stats", async (c: Context) => {
-  const serializedUser = await getSignedCookie(c, PRIVATE_KEY, "user");
+  const serializedUser = await getSignedCookie(c, SIGNING_KEY, "user");
   if (!serializedUser) return c.body(null, 400);
 
   const user = userSchema.parse(JSON.parse(serializedUser));
@@ -92,7 +93,7 @@ app.post("/stats", async (c: Context) => {
 });
 
 app.post("/image", async (c: Context) => {
-  const userCookie = await getSignedCookie(c, PRIVATE_KEY, "user");
+  const userCookie = await getSignedCookie(c, SIGNING_KEY, "user");
   if (!userCookie) return c.body(null, 400);
 
   const user = userSchema.parse(JSON.parse(userCookie));
@@ -109,4 +110,4 @@ if (Deno.env.get("ENVIRONMENT") === "DEV") {
   });
 }
 
-Deno.serve({ port: 3000 }, app.fetch);
+Deno.serve(app.fetch);
