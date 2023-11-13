@@ -1,9 +1,9 @@
-import { Hono } from "https://deno.land/x/hono@v3.10.0-rc.2/mod.ts";
+import { Context, Hono } from "npm:hono";
 import {
   deleteCookie,
   getSignedCookie,
   setSignedCookie,
-} from "https://deno.land/x/hono@v3.7.0-rc.1/middleware.ts";
+} from "npm:hono/cookie";
 
 import { setup, tw } from "npm:twind";
 import { getStyleTag, virtualSheet } from "npm:twind/sheets";
