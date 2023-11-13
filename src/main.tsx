@@ -27,7 +27,31 @@ import {
 
 const PRIVATE_KEY = Deno.env.get("PRIVATE_KEY")!;
 
+// Twind setup
+const sheet = virtualSheet();
+setup({ sheet });
+
+// Evaluate all the components so Twind generates the classes
+<Main />;
+<JoinGroup name="" password="" link="" />;
+<StatsLoader name="" />;
+<SummaryStats
+  totalStudyTime={0}
+  totalAllowedAppTime={0}
+  longestStreak={0}
+  subjectTimings={{}}
+/>;
+
+// Initialise Hono
 const app = new Hono();
+
+// CSS styles
+app.get("/styles.css", (c) => {
+  return c.body(
+    // Extract the CSS from the style tag
+    getStyleTag(sheet).match(/>([^]*)</)![1],
+  );
+});
 
 // Homepage
 app.get("/", (c: Context) => {
