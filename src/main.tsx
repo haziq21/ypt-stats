@@ -38,15 +38,17 @@ setup({
 });
 
 // Evaluate all the components so Twind generates the classes
-<Main style="" />;
-<JoinGroup name="" password="" link="" />;
-<StatsLoader name="" />;
-<SummaryStats
-  totalStudyTime={0}
-  totalAllowedAppTime={0}
-  longestStreak={0}
-  subjectTimings={{}}
-/>;
+<>
+  <Main style="" />
+  <JoinGroup name="" password="" link="" />
+  <StatsLoader name="" />
+  <SummaryStats
+    totalStudyTime={0}
+    totalAllowedAppTime={0}
+    longestStreak={0}
+    subjectTimings={{}}
+  />
+</>;
 
 // Initialise Hono
 const app = new Hono();
