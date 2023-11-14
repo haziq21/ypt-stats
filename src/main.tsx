@@ -5,7 +5,7 @@ import {
   setSignedCookie,
 } from "npm:hono/cookie";
 
-import { setup, tw } from "npm:twind";
+import { setup } from "npm:twind";
 import { getStyleTag, virtualSheet } from "npm:twind/sheets";
 
 import Main from "./components/Main.tsx";
@@ -30,7 +30,7 @@ const sheet = virtualSheet();
 setup({ sheet });
 
 // Evaluate all the components so Twind generates the classes
-<Main />;
+<Main style="" />;
 <JoinGroup name="" password="" link="" />;
 <StatsLoader name="" />;
 <SummaryStats
@@ -43,19 +43,10 @@ setup({ sheet });
 // Initialise Hono
 const app = new Hono();
 
-// CSS styles
-app.get("/styles.css", (c) => {
-  return c.body(
-    // Extract the CSS from the style tag
-    getStyleTag(sheet).match(/>([^]*)</)![1],
-  );
-});
-
 // Homepage
 app.get("/", (c: Context) => {
   // TODO: check if the "user" cookie is set
-
-  return c.html(<Main />);
+  return c.html(<Main style={getStyleTag(sheet)} />);
 });
 
 app.post("/otg", async (c: Context) => {
