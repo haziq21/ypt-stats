@@ -3,7 +3,7 @@
     "dev": "deno run --env --allow-net --allow-read --allow-env --watch src/main.tsx"
   },
   "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "https://esm.sh/hono@3.10.0-rc.2/jsx"
+    "jsx": "precompile",
+    "jsxImportSource": "https://esm.sh/hono@3.10.0/jsx"
   }
 }
