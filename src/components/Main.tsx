@@ -6,10 +6,12 @@ export default (props: { style: string }) => (
       <title>YPT stats generator</title>
       <script src="https://unpkg.com/htmx.org@1.9.6"></script>
     </head>
-    <body hx-target="body" class={tw`bg-warmGray-900 text-warmGray-300`}>
+    <body class={tw`bg-warmGray-900 text-warmGray-300`}>
       <div dangerouslySetInnerHTML={{ __html: props.style }} />
-      <p>hi this is the ypt stats generator!!</p>
-      <button hx-post="/otg">lets GOo</button>
+      <main hx-target="this">
+        <p>hi this is the ypt stats generator!!</p>
+        <button hx-post="/otg">lets GOo</button>
+      </main>
     </body>
   </html>
 );
