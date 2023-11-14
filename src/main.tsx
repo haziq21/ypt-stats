@@ -7,6 +7,7 @@ import {
 
 import { setup } from "npm:twind";
 import { getStyleTag, virtualSheet } from "npm:twind/sheets";
+import * as colors from "npm:twind/colors";
 
 import Main from "./components/Main.tsx";
 import JoinGroup from "./components/JoinGroup.tsx";
@@ -27,7 +28,14 @@ const SIGNING_KEY = Deno.env.get("SIGNING_KEY")!;
 
 // Twind setup
 const sheet = virtualSheet();
-setup({ sheet });
+setup({
+  sheet,
+  theme: {
+    extend: {
+      colors,
+    },
+  },
+});
 
 // Evaluate all the components so Twind generates the classes
 <Main style="" />;
