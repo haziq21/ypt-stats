@@ -56,6 +56,9 @@ const _ = (
 // Initialise Hono
 const app = new Hono();
 
+// Static assets
+app.use("/assets/*", serveStatic({ root: "./src" }));
+
 // Homepage
 app.get("/", (c: Context) => {
   // TODO: check if the "user" cookie is set
