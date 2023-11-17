@@ -10,12 +10,11 @@ import { setup } from "npm:twind";
 import { getStyleTag, virtualSheet } from "npm:twind/sheets";
 import * as colors from "npm:twind/colors";
 
-import Main from "./components/Main.tsx";
+import Layout from "./components/Layout.tsx";
+import Welcome from "./components/Welcome.tsx";
 import JoinGroup from "./components/JoinGroup.tsx";
 import StatsLoader from "./components/StatsLoader.tsx";
 import SummaryStats from "./components/SummaryStats.tsx";
-
-// import { qrcode } from "https://deno.land/x/qrcode@v2.0.0/mod.ts";
 
 import {
   createOneTimeGroup,
@@ -26,6 +25,7 @@ import {
 } from "./ypt.ts";
 
 const SIGNING_KEY = Deno.env.get("SIGNING_KEY")!;
+const devEnv = Deno.env.get("ENVIRONMENT") === "DEV";
 
 // Twind setup
 const sheet = virtualSheet();
@@ -39,10 +39,12 @@ setup({
 });
 
 // Evaluate all the components so Twind generates the classes
-const _ = (
+(
   <>
-    <Main style="" />
-    <JoinGroup name="" password="" link="" />
+    <Layout style="">
+      <Welcome />
+    </Layout>
+    <JoinGroup id={0} name="" password="" link="" />
     <StatsLoader name="" />
     <SummaryStats
       totalStudyTime={0}
@@ -51,7 +53,7 @@ const _ = (
       subjectTimings={{}}
     />
   </>
-);
+).toString();
 
 // Initialise Hono
 const app = new Hono();
@@ -62,10 +64,28 @@ app.use("/assets/*", serveStatic({ root: "./src" }));
 // Homepage
 app.get("/", (c: Context) => {
   // TODO: check if the "user" cookie is set
-  return c.html(<Main style={getStyleTag(sheet)} />);
+  return c.html(
+    <Layout style={getStyleTag(sheet)}>
+      <Welcome />
+    </Layout>,
+  );
 });
 
-app.post("/otg", async (c: Context) => {
+app.get("/otg", async (c: Context) => {
+  // Mock page
+  if (devEnv && !c.req.header("HX-Request")) {
+    return c.html(
+      <Layout style={getStyleTag(sheet)}>
+        <JoinGroup
+          id={0}
+          name="ypt stats"
+          password="1234"
+          link="https://invite.yeolpumta.com/13cF"
+        />
+      </Layout>,
+    );
+  }
+
   // Create a one-time YPT group to identify and authenticate the user
   const group = await createOneTimeGroup();
   // So we can identify the user on the /stats endpoint
@@ -109,7 +129,7 @@ app.post("/image", async (c: Context) => {
   return c.json({ ...user, ...studyStats });
 });
 
-if (Deno.env.get("ENVIRONMENT") === "DEV") {
+if (devEnv) {
   // DELETE all the bot-created groups
   app.delete("/groups", async (c: Context) => {
     const count = await deleteAllGroups();
