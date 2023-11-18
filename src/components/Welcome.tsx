@@ -17,8 +17,8 @@ export default () => (
     <button
       hx-get="/otg"
       class={tw`bg(emerald-600 active:emerald-700) border(2 emerald-500)
-text(lg warmGray-50) font-semibold
-px-6 py-2 rounded-lg flex items-center group`}
+      focus-ring text(lg warmGray-50) font-semibold
+      px-6 py-2 rounded-lg flex items-center group`}
     >
       Get started
       <svg

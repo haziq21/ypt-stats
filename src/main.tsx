@@ -36,11 +36,14 @@ setup({
       colors,
     },
   },
+  plugins: {
+    "focus-ring":
+      "focus:outline-none focus-visible:ring(& warmGray-200 offset(2 warmGray-900))",
+  },
 });
 
 // Evaluate all the components so Twind generates the classes
-(
-  <>
+(<>
     <Layout style="">
       <Welcome />
     </Layout>
@@ -52,8 +55,7 @@ setup({
       longestStreak={0}
       subjectTimings={{}}
     />
-  </>
-).toString();
+</>).toString();
 
 // Initialise Hono
 const app = new Hono();

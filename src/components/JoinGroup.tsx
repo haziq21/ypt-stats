@@ -41,12 +41,12 @@ export default async (props: {
         <dt class={tw`col-span-2 mt-8 text(warmGray-500 sm)`}>Invite link</dt>
         <dd
           class={tw`col-span-2 text(warmGray-400 hover:warmGray-200 active:warmGray-200 sm sm:lg)
-          bg(warmGray-800 hover:warmGray-700) rounded-md mt-1 block group`}
+          mt-1 block group`}
         >
           <a
             href={props.link}
             target="_blank"
-            class={tw`px-4 py-2 inline-block`}
+            class={tw`bg(warmGray-800 hover:warmGray-700) rounded-md px-4 py-2 inline-block focus-ring`}
           >
             {props.link}
             <svg
