@@ -90,20 +90,16 @@ app.get("/otg", async (c: Context) => {
 
   // Create a one-time YPT group to identify and authenticate the user
   const group = await createOneTimeGroup();
-  // So we can identify the user on the /stats endpoint
-  await setSignedCookie(c, "otg", group.id.toString(), SIGNING_KEY);
 
   return c.html(<JoinGroup {...group} />);
 });
 
 app.get("/stats-loader", async (c: Context) => {
-  const groupId = await getSignedCookie(c, SIGNING_KEY, "otg");
+  const groupId = c.req.query("otg");
   if (!groupId) return c.body(null, 400);
 
   // Wait for the user to join the YPT group
   const user = await waitForMember(Number.parseInt(groupId));
-
-  deleteCookie(c, "otg");
   await setSignedCookie(c, "user", JSON.stringify(user), SIGNING_KEY);
 
   return c.html(<StatsLoader name={user.name} />);
