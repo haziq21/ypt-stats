@@ -2,7 +2,7 @@ import { tw } from "npm:twind";
 import { qrcode } from "https://deno.land/x/qrcode@v2.0.0/mod.ts";
 
 export default async (props: {
-  id: number;
+  otg: string;
   name: string;
   password: string;
   link: string;
@@ -24,7 +24,7 @@ export default async (props: {
     </p>
     <div
       class={tw`flex(& col sm:row) gap(12 sm:0) items-center justify-between w-full max-w-[40rem]`}
-      hx-get={`/stats-loader?otg=${props.id}`}
+      hx-post={`/stats-loader?otg=${props.otg}`}
       hx-trigger="load"
     >
       <img

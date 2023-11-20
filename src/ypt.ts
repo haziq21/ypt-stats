@@ -2,7 +2,7 @@ import { z } from "npm:zod";
 
 /* Interface definitions */
 
-interface YPTGroup {
+interface Group {
   id: number;
   name: string;
   password: string;
@@ -77,7 +77,7 @@ const studyDataSchema = z.object({
   })),
 });
 
-type User = z.infer<typeof userSchema>;
+export type User = z.infer<typeof userSchema>;
 type Groups = z.infer<typeof groupsSchema>;
 type CreatedGroup = z.infer<typeof createdGroupSchema>;
 type GroupMembers = z.infer<typeof groupMembersSchema>;
@@ -243,10 +243,11 @@ async function reqStudyData(
   // Parse the response
   return studyDataSchema.parse(await res.json());
 }
+
 /* Higher-level functions for iterfacing with YPT */
 
 /** Creates a group on YPT with space for one user. */
-export async function createOneTimeGroup(): Promise<YPTGroup> {
+export async function createOneTimeGroup(): Promise<Group> {
   // TODO: generate better name
   const name = `ypt stats [${Math.floor(10 + Math.random() * 90).toString()}]`;
   const password = Math.floor(1000 + Math.random() * 9000).toString();
@@ -264,6 +265,7 @@ export async function createOneTimeGroup(): Promise<YPTGroup> {
 
   // Generate the invite shortlink
   const generateLinkRes = await reqInviteLink(groupId);
+  // This isn't really necessary for the purposes of the one-time group
   // await reqSetInviteInfo(groupId, generateLinkRes.shortLink);
 
   return { id: groupId, name, password, link: generateLinkRes.shortLink };
@@ -300,17 +302,22 @@ export async function getStudyStats(userId: number): Promise<Stats> {
   let totalStudyTime = 0;
   let totalAllowedAppTime = 0;
 
+  // Maximum number of consecutive days studied
   let longestStreak = 0;
+  // Number of consecutive days studied
   let currentStreak = 0;
+  // Date (Unix timestamp) of the last day of the most recent streak
   let lastStreakEnd = 0;
 
   const subjectTimings: Record<string, number> = {};
 
+  // Go through every day with a study log
   for (const studyDay of studyData.ls) {
     totalStudyTime += studyDay.sm;
 
     const date = Date.parse(studyDay.dt);
 
+    // Update the current and longest streak
     if (date - lastStreakEnd === 1000 * 60 * 60 * 24) {
       currentStreak += 1;
     } else {
@@ -320,10 +327,12 @@ export async function getStudyStats(userId: number): Promise<Stats> {
 
     lastStreakEnd = date;
 
+    // Calculate total amount of time spent on allowed apps on this day
     for (const allowedAppSession of studyDay.as) {
       totalAllowedAppTime += allowedAppSession.sm;
     }
 
+    // Calculate total amount of timee spent on each subject
     for (const studySession of studyDay.ls) {
       if (!Object.hasOwn(subjectTimings, studySession.sb)) {
         subjectTimings[studySession.sb] = 0;
