@@ -25,7 +25,7 @@ import {
 } from "./ypt.ts";
 
 const SIGNING_KEY = Deno.env.get("SIGNING_KEY")!;
-const devEnv = Deno.env.get("ENVIRONMENT") === "DEV";
+const DEV_ENV = Deno.env.get("ENVIRONMENT") === "DEV";
 
 // Twind setup
 const sheet = virtualSheet();
@@ -73,10 +73,9 @@ app.get("/", (c: Context) => {
   );
 });
 
-app.get("/otg", async (c: Context) => {
-  // Mock page
-  if (devEnv && !c.req.header("HX-Request")) {
-    return c.html(
+// Mock join (one-time) group page
+DEV_ENV && app.get("/otg", (c: Context) =>
+  c.html(
       <Layout style={getStyleTag(sheet)}>
         <JoinGroup
           id={0}
@@ -85,12 +84,12 @@ app.get("/otg", async (c: Context) => {
           link="https://invite.yeolpumta.com/13cF"
         />
       </Layout>,
-    );
-  }
+  ));
 
+// Join temporary YPT group
+app.post("/otg", async (c: Context) => {
   // Create a one-time YPT group to identify and authenticate the user
   const group = await createOneTimeGroup();
-
   return c.html(<JoinGroup {...group} />);
 });
 
@@ -117,22 +116,10 @@ app.post("/stats", async (c: Context) => {
   return c.html(<SummaryStats {...stats} />);
 });
 
-app.post("/image", async (c: Context) => {
-  const userCookie = await getSignedCookie(c, SIGNING_KEY, "user");
-  if (!userCookie) return c.body(null, 400);
-
-  const user = userSchema.parse(JSON.parse(userCookie));
-  const studyStats = await getStudyStats(user.id);
-
-  return c.json({ ...user, ...studyStats });
-});
-
-if (devEnv) {
-  // DELETE all the bot-created groups
-  app.delete("/groups", async (c: Context) => {
+// Delete all the bot-created groups
+DEV_ENV && app.delete("/groups", async (c: Context) => {
     const count = await deleteAllGroups();
     return c.text(`Deleted ${count} groups`);
   });
-}
 
 Deno.serve(app.fetch);

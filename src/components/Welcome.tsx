@@ -15,7 +15,7 @@ export default () => (
       </span>, the group study app.
     </p>
     <button
-      hx-get="/otg"
+      hx-post="/otg"
       class={tw`bg(emerald-600 active:emerald-700) border(2 emerald-500)
       focus-ring text(lg warmGray-50) font-semibold
       px-6 py-2 rounded-lg flex items-center group`}
