@@ -1,14 +1,11 @@
-import { Context, Hono } from "https://deno.land/x/hono@v3.10.0/mod.ts";
+import { Context, Hono } from "hono/mod.ts";
 import {
   deleteCookie,
   getCookie,
   serveStatic,
   setCookie,
-} from "https://deno.land/x/hono@v3.10.0/middleware.ts";
-import {
-  sign,
-  verify,
-} from "https://deno.land/x/hono@v3.10.0/middleware/jwt/index.ts";
+} from "hono/middleware.ts";
+import { sign, verify } from "hono/middleware/jwt/index.ts";
 
 import { setup } from "npm:twind";
 import { getStyleTag, virtualSheet } from "npm:twind/sheets";
