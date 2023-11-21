@@ -24,7 +24,7 @@ export default async (props: {
     </p>
     <div
       class={tw`flex(& col sm:row) gap(12 sm:0) items-center justify-between w-full max-w-[40rem]`}
-      hx-post={`/stats-loader?otg=${props.otg}`}
+      hx-post={`/stats-card?otg=${props.otg}`}
       hx-trigger="load"
     >
       <img

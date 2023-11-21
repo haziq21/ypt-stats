@@ -14,7 +14,7 @@ import * as colors from "npm:twind/colors";
 import Layout from "./components/Layout.tsx";
 import Welcome from "./components/Welcome.tsx";
 import JoinGroup from "./components/JoinGroup.tsx";
-import StatsLoader from "./components/StatsLoader.tsx";
+import StatsCard from "./components/StatsCard.tsx";
 import SummaryStats from "./components/SummaryStats.tsx";
 
 import {
@@ -25,7 +25,8 @@ import {
   waitForMember,
 } from "./ypt.ts";
 
-const SIGNING_KEY = Deno.env.get("SIGNING_KEY")!;
+// Environment variables
+const JWT_SECRET = Deno.env.get("SIGNING_KEY")!;
 const DEV_ENV = Deno.env.get("ENVIRONMENT") === "DEV";
 
 // Twind setup
@@ -33,9 +34,7 @@ const sheet = virtualSheet();
 setup({
   sheet,
   theme: {
-    extend: {
-      colors,
-    },
+    extend: { colors },
   },
   plugins: {
     "focus-ring":
@@ -49,7 +48,7 @@ setup({
     <Welcome />
   </Layout>
   <JoinGroup otg="" name="" password="" link="" />
-  <StatsLoader name="" />
+  <StatsCard name="" />
   <SummaryStats
     totalStudyTime={0}
     totalAllowedAppTime={0}
@@ -79,10 +78,11 @@ app.get("/", async (c: Context) => {
   }
 
   // User has logged in before so get their username
-  const user: User = await verify(userJwt, SIGNING_KEY);
+  const user: User = await verify(userJwt, JWT_SECRET);
+
   return c.html(
     <Layout style={getStyleTag(sheet)}>
-      <StatsLoader name={user.name} />
+      <StatsCard name={user.name} />
     </Layout>,
   );
 });
@@ -93,7 +93,7 @@ DEV_ENV && app.get("/otg", (c: Context) =>
     <Layout style={getStyleTag(sheet)}>
       <JoinGroup
         otg=""
-        name="ypt stats"
+        name="ypt stats [21]"
         password="1234"
         link="https://invite.yeolpumta.com/13cF"
       />
@@ -104,41 +104,39 @@ DEV_ENV && app.get("/otg", (c: Context) =>
 app.post("/otg", async (c: Context) => {
   // Create a one-time YPT group to identify and authenticate the user
   const group = await createOneTimeGroup();
-  const otgJwt = await sign({ otg: group.id }, SIGNING_KEY);
+  const otgJwt = await sign({ otg: group.id }, JWT_SECRET);
 
   return c.html(<JoinGroup {...group} otg={otgJwt} />);
 });
 
-// Mock stats loader
-DEV_ENV && app.get("/stats-loader", async (c: Context) => {
-  setCookie(
-    c,
-    "user",
-    await sign({ name: "haziq21", id: 7271448 }, SIGNING_KEY),
-  );
+// Mock stats card
+DEV_ENV && app.get("/stats-card", async (c: Context) => {
+  const user = { name: "haziq21", id: 7271448 };
+  const userJwt = await sign(user, JWT_SECRET);
+  setCookie(c, "user", userJwt);
 
   return c.html(
     <Layout style={getStyleTag(sheet)}>
-      <StatsLoader name="haziq21" />
+      <StatsCard name={user.name} />
     </Layout>,
   );
 });
 
-app.post("/stats-loader", async (c: Context) => {
+app.post("/stats-card", async (c: Context) => {
   const otgJwt = c.req.query("otg");
 
   // Verify that the otg JWT is present and valid
   if (!otgJwt) return c.body(null, 400);
-  const otg: number = (await verify(otgJwt, SIGNING_KEY)).otg;
+  const otg: number = (await verify(otgJwt, JWT_SECRET)).otg;
 
   // Wait for the user to join the YPT group
   const user = await waitForMember(otg);
 
-  // JWT cookie to authenticate user on /stats route and allow for recurrent
-  // logins without redoing the one-time group account identification
-  setCookie(c, "user", await sign(user, SIGNING_KEY));
+  // JWT cookie to authenticate user on /stats route and allow for
+  // recurrent logins without redoing the one-time group thing
+  setCookie(c, "user", await sign(user, JWT_SECRET));
 
-  return c.html(<StatsLoader name={user.name} />);
+  return c.html(<StatsCard name={user.name} />);
 });
 
 app.post("/stats", async (c: Context) => {
@@ -146,7 +144,7 @@ app.post("/stats", async (c: Context) => {
 
   // Verify that the user JWT is present and valid
   if (!userJwt) return c.body(null, 401);
-  const user: User = await verify(userJwt, SIGNING_KEY);
+  const user: User = await verify(userJwt, JWT_SECRET);
 
   // Generate the stats
   const stats = await getStudyStats(user.id);
