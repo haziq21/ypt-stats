@@ -9,7 +9,7 @@ export default async (props: {
 }) => (
   <>
     <p class={tw`pt(8 sm:16 md:32) mb-12 max-w-prose`}>
-      Our bot needs you to join this temporary
+      Join this temporary
       <span class={tw`mr-2`} />
       <span class={tw`text-warmGray-200 font-medium inline-block`}>
         <img
@@ -20,7 +20,7 @@ export default async (props: {
         YPT
       </span>
       <span class={tw`mr-1`} />
-      group to gather your study data.
+      group so we can gather your study data.
     </p>
     <div
       class={tw`flex(& col sm:row) gap(12 sm:0) items-center justify-between w-full max-w-[40rem]`}
